@@ -5,6 +5,7 @@ import { Text } from 'react-native';
 import { useSession } from '@/components/session-state';
 import { Button, Card, Field, Header, Muted, Screen } from '@/components/ui/primitives';
 import { authMessage } from '@/src/persistence/auth-messages';
+import { authRedirect } from '@/src/persistence/auth-redirect';
 import { getSupabase } from '@/src/persistence/supabase-client';
 
 export default function SignUpScreen() {
@@ -26,7 +27,7 @@ export default function SignUpScreen() {
     const { error } = await getSupabase().auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: 'ahorruta://correo-confirmado' },
+      options: { emailRedirectTo: authRedirect('correo-confirmado') },
     });
     setPending(false);
     if (error) {

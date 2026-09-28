@@ -27,21 +27,42 @@ function routeForAuthType(type: string | null): Href | null {
   return null;
 }
 
+const codeExchanges = new Map<string, Promise<void>>();
+
+function isAuthReturn(url: string, parsed: URL): boolean {
+  if (url.includes('ahorruta://')) {
+    return true;
+  }
+  return parsed.pathname === '/restablecer' || parsed.pathname === '/correo-confirmado';
+}
+
 export async function consumeAuthUrl(url: string): Promise<Href | null> {
-  if (!url.includes('ahorruta://')) {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
     return null;
   }
-  const parsed = new URL(url);
+  if (!isAuthReturn(url, parsed)) {
+    return null;
+  }
   const code = parsed.searchParams.get('code');
   const hash = new URLSearchParams(parsed.hash.replace(/^#/, ''));
   const type = hash.get('type') ?? parsed.searchParams.get('type');
   const supabase = getSupabase();
 
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      throw error;
+    let pending = codeExchanges.get(code);
+    if (!pending) {
+      pending = supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          codeExchanges.delete(code);
+          throw error;
+        }
+      });
+      codeExchanges.set(code, pending);
     }
+    await pending;
   } else if (hash.get('access_token') && hash.get('refresh_token')) {
     const { error } = await supabase.auth.setSession({
       access_token: hash.get('access_token') ?? '',
@@ -91,11 +112,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           }
         })
         .catch(() => {
-          router.push('/entrar' as Href);
+          const target = url.includes('restablecer') ? '/restablecer' : '/correo-confirmado';
+          router.replace(`${target}?error=caducado` as Href);
         });
     };
 
-    Linking.getInitialURL().then(openUrl);
+    const initialUrl =
+      typeof window !== 'undefined' && window.location?.href
+        ? Promise.resolve(window.location.href)
+        : Linking.getInitialURL();
+    initialUrl.then(openUrl);
     const linking = Linking.addEventListener('url', (event) => openUrl(event.url));
 
     return () => {

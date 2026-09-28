@@ -1,4 +1,4 @@
-import { router, type Href } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useState } from 'react';
 import { Text } from 'react-native';
 
@@ -9,6 +9,7 @@ import { getSupabase } from '@/src/persistence/supabase-client';
 
 export default function ResetPasswordScreen() {
   const { configured, session } = useSession();
+  const { error: linkError } = useLocalSearchParams<{ error?: string }>();
   const [password, setPassword] = useState('');
   const [repeat, setRepeat] = useState('');
   const [message, setMessage] = useState('');
@@ -35,7 +36,11 @@ export default function ResetPasswordScreen() {
       <Header title="Nueva contraseña" fallback="/entrar" />
       {!session ? (
         <Card tone="yellow">
-          <Text>Abre el enlace del correo en este dispositivo para continuar.</Text>
+          <Text>
+            {linkError === 'caducado'
+              ? 'Ese enlace ya no sirve. Pide otro desde Recuperar contraseña.'
+              : 'Abre el enlace del correo en este dispositivo para continuar.'}
+          </Text>
         </Card>
       ) : (
         <>

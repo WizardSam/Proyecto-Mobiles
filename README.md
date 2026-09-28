@@ -12,7 +12,7 @@ Aplicación administrativa de finanzas personales para registrar ingresos, gasto
 - Hito 2 implementado y aprobado: dinero y fechas.
 - Hito 3 implementado y aprobado: saldos y presupuestos.
 - Hito 4 implementado y aprobado: motor de metas, reservas y desembolsos.
-- Hito 5 implementado en local, pendiente de revisión: cuenta, persistencia y aislamiento.
+- Hito 5 implementado y aprobado en local: cuenta con correo y contraseña, confirmación, recuperación, Mi cuenta, borrado y aislamiento. La demostración de Cancún sigue separada de la cuenta.
 - La interfaz de movimientos, compromisos y metas sigue con la demostración local de Cancún.
 - El proyecto remoto de Supabase todavía no existe.
 
@@ -42,6 +42,7 @@ npm run typecheck
 - [Decisiones aprobadas](docs/ahorruta-decisions-v1.md)
 - [Entrega para Cursor](docs/ahorruta-cursor-handoff.md)
 - [Hito 5: cuenta, persistencia y aislamiento](docs/ahorruta-hito-5.md)
+- [Cierre del Hito 5](docs/ahorruta-handoff-cierre-hito-5.md)
 - [Traspaso para iniciar el Hito 5](docs/ahorruta-chat-handoff-hito-5.md)
 - [Referencias visuales](docs/ahorruta-assets)
 

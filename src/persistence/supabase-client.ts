@@ -1,4 +1,4 @@
-import 'expo-sqlite/localStorage/install';
+import './install-device-storage';
 import 'react-native-url-polyfill/auto';
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';

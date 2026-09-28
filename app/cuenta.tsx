@@ -15,6 +15,7 @@ import {
   updateFinancialProfile,
   type IncomeFrequency,
 } from '@/src/persistence/profile-repository';
+import { authRedirect } from '@/src/persistence/auth-redirect';
 import { getSupabase } from '@/src/persistence/supabase-client';
 
 const frequencies = ['Semanal', 'Días 15 y último día', 'Cada 14 días', 'Mensual'] as const;
@@ -77,6 +78,7 @@ export default function AccountScreen() {
   const [password, setPassword] = useState('');
   const [phrase, setPhrase] = useState('');
   const [message, setMessage] = useState('');
+  const [deleteMessage, setDeleteMessage] = useState('');
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
@@ -198,20 +200,20 @@ export default function AccountScreen() {
     const { error } = await getSupabase().auth.resend({
       type: 'signup',
       email: session.user.email,
-      options: { emailRedirectTo: 'ahorruta://correo-confirmado' },
+      options: { emailRedirectTo: authRedirect('correo-confirmado') },
     });
     setPending(false);
     setMessage(error ? 'No se pudo reenviar el correo.' : 'Te enviamos otro enlace de confirmación.');
   }
 
   async function removeAccount() {
-    setMessage('');
+    setDeleteMessage('');
     setPending(true);
     try {
       await deleteOwnAccount(password, phrase.trim().toUpperCase());
       router.replace('/');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'No se pudo borrar la cuenta.');
+      setDeleteMessage(error instanceof Error ? error.message : 'No se pudo borrar la cuenta.');
       setPending(false);
     }
   }
@@ -308,6 +310,11 @@ export default function AccountScreen() {
         autoCapitalize="characters"
         placeholder="ELIMINAR"
       />
+      {deleteMessage ? (
+        <Card tone="yellow">
+          <Text>{deleteMessage}</Text>
+        </Card>
+      ) : null}
       <Button
         label="Borrar mi cuenta"
         variant="secondary"

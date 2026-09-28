@@ -1,6 +1,6 @@
 # Ahorruta — Hito 5: cuenta, persistencia y aislamiento
 
-Estado: implementado en local, pendiente de revisión.  
+Estado: aprobado en local.  
 No hay proyecto remoto de Supabase.
 
 ## Qué incluye
@@ -34,6 +34,12 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 ```
 
 La clave secreta de servicio no va en la app, ni en `.env.local`, ni en el repositorio. La función de borrado la recibe del entorno de Supabase en el servidor.
+
+En la web, la sesión usa el `localStorage` del navegador. En el dispositivo sigue `expo-sqlite`. Metro trata `.wasm` como recurso.
+
+En la web, la confirmación y la recuperación regresan a la misma pestaña, en `/correo-confirmado` y `/restablecer`. En el teléfono siguen `ahorruta://correo-confirmado` y `ahorruta://restablecer`. Las direcciones web del entorno local están en `additional_redirect_urls`.
+
+Un enlace caducado permanece en **Nueva contraseña** y dice que hay que pedir otro. El aviso de un borrado fallido aparece junto a **Borrar mi cuenta**.
 
 Los correos locales no salen a internet. La bandeja está en el puerto que indica `npx supabase status`, normalmente `http://127.0.0.1:54324`.
 
