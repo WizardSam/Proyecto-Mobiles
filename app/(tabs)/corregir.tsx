@@ -2,12 +2,28 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
+import { AccountCorrect } from '@/components/account/correct';
+import { ConfirmEmailGate, LoadingScreen, useAccountMode } from '@/components/account/mode';
 import { useDemo } from '@/components/demo-state';
 import { demoMovements } from '@/constants/demo';
 import { Button, Card, Field, Header, Muted, Screen } from '@/components/ui/primitives';
 import { colors } from '@/components/ui/theme';
 
 export default function CorrectMovementScreen() {
+  const mode = useAccountMode();
+  if (mode === 'loading') {
+    return <LoadingScreen title="Corregir movimiento" />;
+  }
+  if (mode === 'confirm') {
+    return <ConfirmEmailGate title="Corregir movimiento" />;
+  }
+  if (mode === 'ready') {
+    return <AccountCorrect />;
+  }
+  return <DemoCorrect />;
+}
+
+function DemoCorrect() {
   const demo = useDemo();
   const params = useLocalSearchParams<{ id?: string }>();
   const id = params.id ?? '';

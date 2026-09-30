@@ -7,7 +7,7 @@ import { Button, Card, ChoiceRow, Field, Header, Muted, Screen, SectionTitle } f
 import { parseIsoDate, formatIsoDate } from '@/src/dates';
 import type { AccountKind } from '@/src/ledger';
 import { formatPesos, parsePesos, type Cents } from '@/src/money';
-import { loadAccounts, saveAccount } from '@/src/persistence/account-repository';
+import { loadAccounts, saveAccount, archiveAccount, reactivateAccount } from '@/src/persistence/account-repository';
 import { deleteOwnAccount } from '@/src/persistence/delete-account';
 import {
   loadProfile,
@@ -74,12 +74,19 @@ export default function AccountScreen() {
     ahorro: '',
   });
   const [accountIds, setAccountIds] = useState<Partial<Record<AccountKind, string>>>({});
+  const [accountActive, setAccountActive] = useState<Record<AccountKind, boolean>>({
+    efectivo: true,
+    debito: true,
+    ahorro: true,
+  });
   const [lastAccount, setLastAccount] = useState('Ninguna');
   const [password, setPassword] = useState('');
   const [phrase, setPhrase] = useState('');
   const [message, setMessage] = useState('');
   const [deleteMessage, setDeleteMessage] = useState('');
   const [pending, setPending] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profileAttempt, setProfileAttempt] = useState(0);
 
   useEffect(() => {
     if (!session) {
@@ -92,6 +99,7 @@ export default function AccountScreen() {
         if (!active) {
           return;
         }
+        setProfileError('');
         if (!profile) {
           setLoadedKey(key);
           return;
@@ -109,26 +117,29 @@ export default function AccountScreen() {
         setTracking(profile.trackingStartedOn ?? '');
         const nextBalances = { efectivo: '', debito: '', ahorro: '' };
         const nextIds: Partial<Record<AccountKind, string>> = {};
+        const nextActive: Record<AccountKind, boolean> = { efectivo: true, debito: true, ahorro: true };
         for (const account of accounts) {
           nextBalances[account.kind] = formatPesos(account.openingBalance);
           nextIds[account.kind] = account.id;
-          if (account.id === profile.lastAccountId) {
+          nextActive[account.kind] = account.active;
+          if (account.id === profile.lastAccountId && account.active) {
             setLastAccount(accountLabels.find((item) => item.kind === account.kind)?.label ?? 'Ninguna');
           }
         }
         setBalances(nextBalances);
         setAccountIds(nextIds);
+        setAccountActive(nextActive);
         setLoadedKey(key);
       })
       .catch(() => {
         if (active) {
-          setMessage('No se pudo leer tu perfil.');
+          setProfileError('No se pudo leer tu perfil.');
         }
       });
     return () => {
       active = false;
     };
-  }, [session, confirmed]);
+  }, [session, confirmed, profileAttempt]);
 
   async function save() {
     setMessage('');
@@ -167,17 +178,25 @@ export default function AccountScreen() {
 
   async function saveBalances(): Promise<Partial<Record<AccountKind, string>>> {
     const ids = { ...accountIds };
-    for (const account of accountLabels) {
+    const balancesToSave = accountLabels.flatMap((account) => {
       const value = balances[account.kind].trim();
       if (value.length === 0) {
-        continue;
+        return [];
       }
-      const openingBalance = parsePesos(value, { allowNegative: true });
+      try {
+        return [{ account, openingBalance: parsePesos(value, { allowNegative: true }) }];
+      } catch {
+        throw new Error(`El saldo inicial de ${account.label.toLowerCase()} no es válido.`);
+      }
+    });
+
+    for (const { account, openingBalance } of balancesToSave) {
       await saveAccount({
         id: ids[account.kind],
         kind: account.kind,
         name: account.label,
         openingBalance,
+        active: accountActive[account.kind],
       });
     }
     const fresh = await loadAccounts();
@@ -204,6 +223,47 @@ export default function AccountScreen() {
     });
     setPending(false);
     setMessage(error ? 'No se pudo reenviar el correo.' : 'Te enviamos otro enlace de confirmación.');
+  }
+
+  async function archiveKind(kind: AccountKind) {
+    const id = accountIds[kind];
+    if (!id) {
+      return;
+    }
+    setMessage('');
+    setPending(true);
+    try {
+      await archiveAccount(id);
+      setAccountActive((current) => ({ ...current, [kind]: false }));
+      const label = accountLabels.find((item) => item.kind === kind)?.label;
+      if (label && lastAccount === label) {
+        setLastAccount('Ninguna');
+      }
+      setMessage(`${label ?? 'La cuenta'} quedó archivada. Sus movimientos siguen en la lista.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'No se pudo archivar la cuenta.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function reactivateKind(kind: AccountKind) {
+    const id = accountIds[kind];
+    if (!id) {
+      return;
+    }
+    setMessage('');
+    setPending(true);
+    try {
+      await reactivateAccount(id);
+      setAccountActive((current) => ({ ...current, [kind]: true }));
+      const label = accountLabels.find((item) => item.kind === kind)?.label;
+      setMessage(`${label ?? 'La cuenta'} volvió a estar activa. Su historial no cambió.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'No se pudo reactivar la cuenta.');
+    } finally {
+      setPending(false);
+    }
   }
 
   async function removeAccount() {
@@ -239,7 +299,37 @@ export default function AccountScreen() {
     );
   }
 
-  const lastOptions = ['Ninguna', ...accountLabels.map((item) => item.label)];
+  if (!ready && profileError) {
+    return (
+      <Screen withBottomInset>
+        <Header title="Mi cuenta" fallback="/" />
+        <Card tone="yellow">
+          <Text>{profileError}</Text>
+        </Card>
+        <Button
+          label="Reintentar"
+          onPress={() => {
+            setProfileError('');
+            setProfileAttempt((current) => current + 1);
+          }}
+        />
+      </Screen>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <Screen withBottomInset>
+        <Header title="Mi cuenta" fallback="/" />
+        <Muted>Cargando…</Muted>
+      </Screen>
+    );
+  }
+
+  const lastOptions = [
+    'Ninguna',
+    ...accountLabels.filter((item) => accountIds[item.kind] && accountActive[item.kind]).map((item) => item.label),
+  ];
 
   return (
     <Screen withBottomInset>
@@ -263,8 +353,14 @@ export default function AccountScreen() {
           {frequency === 'Cada 14 días' ? (
             <Field label="Primera fecha" value={anchor} onChangeText={setAnchor} placeholder="2026-10-15" autoCapitalize="none" />
           ) : null}
-          <Field label="Ingreso esperado" value={income} onChangeText={setIncome} placeholder="$0.00" />
-          <Field label="Gasto total estimado" value={expense} onChangeText={setExpense} placeholder="$0.00" />
+          <Field label="Ingreso esperado" value={income} onChangeText={setIncome} placeholder="$0.00" autoComplete="off" />
+          <Field
+            label="Gasto total estimado"
+            value={expense}
+            onChangeText={setExpense}
+            placeholder="$0.00"
+            autoComplete="off"
+          />
           <Field
             label="Inicio del seguimiento"
             value={tracking}
@@ -275,13 +371,34 @@ export default function AccountScreen() {
           <SectionTitle>Saldos iniciales</SectionTitle>
           <Muted>Efectivo, débito y ahorro. Opcionales y ajenos a la demostración.</Muted>
           {accountLabels.map((account) => (
-            <Field
-              key={account.kind}
-              label={account.label}
-              value={balances[account.kind]}
-              onChangeText={(value) => setBalances((current) => ({ ...current, [account.kind]: value }))}
-              placeholder="Opcional"
-            />
+            <Card key={account.kind}>
+              <Field
+                label={account.label}
+                value={balances[account.kind]}
+                onChangeText={(value) => setBalances((current) => ({ ...current, [account.kind]: value }))}
+                placeholder="Opcional"
+                autoComplete="off"
+              />
+              {accountIds[account.kind] && accountActive[account.kind] ? (
+                <Button
+                  label={`Archivar ${account.label.toLowerCase()}`}
+                  variant="secondary"
+                  disabled={pending}
+                  onPress={() => void archiveKind(account.kind)}
+                />
+              ) : null}
+              {accountIds[account.kind] && !accountActive[account.kind] ? (
+                <>
+                  <Muted>Archivada. Sus movimientos siguen en la lista y deja de aparecer al registrar.</Muted>
+                  <Button
+                    label={`Reactivar ${account.label.toLowerCase()}`}
+                    variant="secondary"
+                    disabled={pending}
+                    onPress={() => void reactivateKind(account.kind)}
+                  />
+                </>
+              ) : null}
+            </Card>
           ))}
           <Muted>Última cuenta utilizada</Muted>
           <ChoiceRow options={lastOptions} value={lastAccount} onChange={setLastAccount} />

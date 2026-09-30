@@ -1,87 +1,83 @@
 import { router } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AccountHome } from '@/components/account/home';
-import { ConfirmEmailGate, LoadingScreen, useAccountMode } from '@/components/account/mode';
-import { useDemo } from '@/components/demo-state';
+import { LoadError, LoadingScreen, useFinance, useMaskedMoney } from '@/components/account/mode';
 import { AppIcon } from '@/components/ui/icons';
-import { Amount, Button, Card, Chip, Muted, Row, Screen, SectionTitle } from '@/components/ui/primitives';
+import { Amount, Button, Card, Chip, Muted, Screen } from '@/components/ui/primitives';
 import { colors } from '@/components/ui/theme';
-import { cancun, homeSnapshots, maskMoney } from '@/constants/demo';
+import { todayInTimeZone } from '@/src/dates';
+import { summarizeBalances } from '@/src/ledger';
+import { monthBounds } from '@/src/movements/period';
+import { toLedgerInput } from '@/src/movements/to-ledger';
+import { toCents } from '@/src/money';
 
-export default function HomeScreen() {
-  const mode = useAccountMode();
-  if (mode === 'loading') {
+export function AccountHome() {
+  const { finance, error, loading, reload } = useFinance();
+  const money = useMaskedMoney();
+
+  const summary = useMemo(() => {
+    if (!finance) {
+      return null;
+    }
+    try {
+      const today = todayInTimeZone();
+      return summarizeBalances({
+        ...toLedgerInput(finance),
+        period: monthBounds(today),
+        reserved: toCents(0),
+      });
+    } catch {
+      return null;
+    }
+  }, [finance]);
+
+  if (loading && !finance) {
     return <LoadingScreen title="Inicio" />;
   }
-  if (mode === 'confirm') {
-    return <ConfirmEmailGate title="Inicio" />;
+  if (error && !finance) {
+    return <LoadError title="Inicio" message={error} onRetry={() => void reload()} />;
   }
-  if (mode === 'ready') {
-    return <AccountHome />;
+  if (!finance || !summary) {
+    return <LoadError title="Inicio" message="No se pudieron calcular tus saldos." onRetry={() => void reload()} />;
   }
-  return <DemoHome />;
-}
 
-function DemoHome() {
-  const demo = useDemo();
-  const money = (value: string) => maskMoney(value, demo.hideAmounts);
-  const snapshot = demo.savedMovement ? homeSnapshots.afterExpense : homeSnapshots.beforeExpense;
-  const route = demo.goalRoute;
+  const greeting = finance.displayName.trim().length > 0 ? finance.displayName : 'Hola';
 
   return (
     <Screen>
       <View style={styles.header}>
         <View style={styles.greeting}>
-          <Text style={styles.hello}>Hola, {demo.displayName}</Text>
-          <View style={styles.subRow}>
-            <AppIcon name="sun" size={16} color={colors.warn} />
-            <Text style={styles.sub}>Qué bueno tenerte aquí</Text>
-          </View>
+          <Text style={styles.hello}>Hola, {greeting}</Text>
+          <Text style={styles.sub}>Estos números salen de tu cuenta.</Text>
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Abrir perfil"
-          onPress={() => router.push('/perfil')}
+          accessibilityLabel="Abrir mi cuenta"
+          onPress={() => router.push('/cuenta')}
           style={styles.avatar}
         >
           <AppIcon name="user" color={colors.primary} />
         </Pressable>
       </View>
-
-      {demo.setupStatus === 'skipped' ? (
-        <Card tone="yellow">
-          <Text style={styles.cardTitle}>Puedes completar tu configuración cuando quieras.</Text>
-          <Button label="Completar ahora" variant="secondary" onPress={() => router.push('/configuracion')} />
-        </Card>
-      ) : null}
-
       <Card>
         <View style={styles.labelRow}>
           <Text style={styles.label}>Disponible estimado</Text>
           <AppIcon name="info" size={16} color={colors.muted} />
         </View>
-        <Amount>{money(snapshot.disponible)}</Amount>
+        <Amount>{money(summary.available)}</Amount>
         <Muted>Estimación según tus registros. Tu banco no está conectado.</Muted>
-        <Chip icon="feather" label={snapshot.status} />
+        <Chip label="Según tus registros" />
       </Card>
-
       <View style={styles.stats}>
-        <Stat icon="arrow-up" label="Ingresos" value={money(snapshot.ingresos)} tint={colors.positiveSoft} />
-        <Stat icon="arrow-down" label="Gastos" value={money(snapshot.gastos)} tint={colors.coral} />
-        <Stat icon="target" label="Para tus metas" value={money(snapshot.metas)} tint={colors.yellowSoft} />
+        <Stat icon="arrow-up" label="Ingresos" value={money(summary.income)} tint={colors.positiveSoft} />
+        <Stat icon="arrow-down" label="Gastos" value={money(summary.expenses)} tint={colors.coral} />
+        <Stat icon="target" label="Para tus metas" value={money(toCents(0))} tint={colors.yellowSoft} />
       </View>
-
-      <SectionTitle>Lo siguiente</SectionTitle>
-      <Card>
-        <Row
-          icon="map-pin"
-          title={cancun.name}
-          subtitle={`Aporta ${money(route.nextAmount)} el ${route.nextDate}`}
-          onPress={() => router.push('/detalle-meta')}
-        />
+      <Card tone="soft">
+        <Text style={styles.cardTitle}>Metas</Text>
+        <Muted>Las metas reales todavía no se guardan en la cuenta. Esta cantidad no viene de la demostración.</Muted>
       </Card>
-
       <Button label="Registrar movimiento" icon="plus" onPress={() => router.push('/registrar')} />
       <Button label="Ver resumen mensual" variant="secondary" onPress={() => router.push('/resumen')} />
     </Screen>
@@ -125,11 +121,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontSize: 28,
     fontWeight: '800',
-  },
-  subRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
   },
   sub: {
     color: colors.muted,

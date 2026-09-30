@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useSession } from '@/components/session-state';
 import { AppIcon, type IconName } from '@/components/ui/icons';
 import { colors } from '@/components/ui/theme';
 
@@ -25,6 +26,7 @@ const groups: Record<string, string> = {
   voz: 'movimientos',
   confirmar: 'movimientos',
   corregir: 'movimientos',
+  categorias: 'movimientos',
   metas: 'metas',
   'nueva-meta': 'metas',
   'vista-previa': 'metas',
@@ -34,58 +36,78 @@ const groups: Record<string, string> = {
   suscripciones: 'calendario',
 };
 
+const demoScreens = new Set([
+  'metas',
+  'nueva-meta',
+  'vista-previa',
+  'detalle-meta',
+  'reajustar',
+  'calendario',
+  'suscripciones',
+  'presupuestos',
+  'voz',
+  'perfil',
+]);
+
 export function AhorrutaTabBar({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
+  const { session } = useSession();
   const current = state.routes[state.index]?.name ?? 'inicio';
   const active = groups[current] ?? 'inicio';
+  const showDemo = !session || demoScreens.has(current);
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <Text style={styles.demo}>Demostración local. No se guarda en tu cuenta.</Text>
-      {tabs.map((tab) => {
-        const selected = active === tab.name;
-        const route = state.routes.find((item: { name: string }) => item.name === tab.name);
-        return (
-          <Pressable
-            key={tab.name}
-            accessibilityRole="button"
-            accessibilityState={{ selected }}
-            accessibilityLabel={tab.label}
-            onPress={() => {
-              if (!route) {
-                return;
-              }
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
-              if (!selected && !event.defaultPrevented) {
-                navigation.navigate(tab.name as never);
-              }
-            }}
-            style={styles.item}
-          >
-            <AppIcon name={tab.icon} size={20} color={selected ? colors.primary : colors.muted} />
-            <Text style={[styles.label, selected && styles.labelSelected]}>{tab.label}</Text>
-          </Pressable>
-        );
-      })}
+      {showDemo ? <Text style={styles.demo}>Demostración local. No se guarda en tu cuenta.</Text> : null}
+      <View style={styles.items}>
+        {tabs.map((tab) => {
+          const selected = active === tab.name;
+          const route = state.routes.find((item: { name: string }) => item.name === tab.name);
+          return (
+            <Pressable
+              key={tab.name}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              accessibilityLabel={tab.label}
+              onPress={() => {
+                if (!route) {
+                  return;
+                }
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+                if (!selected && !event.defaultPrevented) {
+                  navigation.navigate(tab.name as never);
+                }
+              }}
+              style={styles.item}
+            >
+              <AppIcon name={tab.icon} size={20} color={selected ? colors.primary : colors.muted} />
+              <Text style={[styles.label, selected && styles.labelSelected]}>{tab.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   bar: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     backgroundColor: '#FBF9F4',
     borderTopWidth: 1,
     borderTopColor: colors.line,
     paddingTop: 8,
   },
+  items: {
+    width: '100%',
+    flexDirection: 'row',
+  },
   item: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: 0,
     minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',

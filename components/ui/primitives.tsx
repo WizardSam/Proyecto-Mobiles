@@ -1,6 +1,15 @@
 import { router, type Href } from 'expo-router';
 import { type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextStyle } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type TextInputProps,
+  type TextStyle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppIcon, type IconName } from '@/components/ui/icons';
@@ -181,6 +190,7 @@ export function Field({
   placeholder,
   secureTextEntry = false,
   autoCapitalize = 'sentences',
+  autoComplete,
   keyboardType = 'default',
 }: {
   label: string;
@@ -189,6 +199,7 @@ export function Field({
   placeholder?: string;
   secureTextEntry?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  autoComplete?: TextInputProps['autoComplete'];
   keyboardType?: 'default' | 'email-address' | 'number-pad';
 }) {
   return (
@@ -202,6 +213,7 @@ export function Field({
         style={styles.input}
         secureTextEntry={secureTextEntry}
         autoCapitalize={autoCapitalize}
+        autoComplete={autoComplete}
         autoCorrect={!secureTextEntry && autoCapitalize !== 'none'}
         keyboardType={keyboardType}
       />
@@ -392,6 +404,8 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: radius.control,
     backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
     paddingHorizontal: 14,
     color: colors.ink,
     fontSize: 16,

@@ -75,6 +75,19 @@ Las cifras `$1,250`, `$1,375` y `$28,750` de las referencias visuales son ilustr
 - Los tipos de movimiento son ingreso y gasto.
 - Las aportaciones se registran desde la meta.
 - La cuenta predeterminada es la última utilizada; en el primer registro se elige una.
+- Deshacer permanece visible 5 segundos. El borrado en la base espera ese plazo o a que la persona salga de Movimientos. Si la aplicación se cierra antes, el movimiento sigue.
+- Un ingreso y un gasto requieren categoría.
+- Un movimiento confirmado no puede tener una fecha posterior a hoy en `America/Mexico_City`. Los compromisos futuros pertenecen al Hito 7.
+- La nota admite hasta 280 caracteres.
+- Las categorías y las cuentas pueden archivarse y reactivarse. Archivar no elimina movimientos ni otro historial.
+- La lista de movimientos va de lo más reciente a lo más antiguo.
+- Un movimiento ligado a una meta no se edita ni se elimina desde Movimientos.
+- La demostración de Cancún permanece separada de la cuenta.
+- El catálogo inicial de ingreso es Nómina, Honorarios, Ventas o negocio, Reembolso y Otro ingreso.
+- El catálogo inicial de gasto es Comida, Transporte, Vivienda, Servicios, Salud, Educación, Suscripciones, Entretenimiento, Personal y Otros.
+- Una categoría puede crearse, renombrarse, archivarse y reactivarse.
+- Una categoría sin referencias puede eliminarse. Una categoría ya utilizada solo puede archivarse.
+- Los nombres de categoría no se duplican dentro del mismo tipo, ignorando mayúsculas y espacios exteriores. Un nombre archivado sigue ocupado.
 - Suscripciones, renta y otros recurrentes son compromisos pendientes.
 - Un compromiso solo crea un gasto cuando la persona lo confirma.
 - El avatar abre Perfil.
@@ -139,5 +152,4 @@ Cada hito requiere aprobación independiente.
 
 No bloquean el Hito 4:
 
-- Antes del Hito 6: definir cuánto tiempo permanece visible la opción de deshacer.
 - Antes del Hito 10: decidir dónde se alojará n8n.

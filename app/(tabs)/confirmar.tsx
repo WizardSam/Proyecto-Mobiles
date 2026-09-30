@@ -2,12 +2,28 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
+import { AccountConfirm } from '@/components/account/confirm';
+import { ConfirmEmailGate, LoadingScreen, useAccountMode } from '@/components/account/mode';
 import { useDemo } from '@/components/demo-state';
 import { homeSnapshots, maskMoney } from '@/constants/demo';
 import { Amount, Button, Card, Header, Muted, Screen } from '@/components/ui/primitives';
 import { colors } from '@/components/ui/theme';
 
 export default function ConfirmMovementScreen() {
+  const mode = useAccountMode();
+  if (mode === 'loading') {
+    return <LoadingScreen title="Confirmar" />;
+  }
+  if (mode === 'confirm') {
+    return <ConfirmEmailGate title="Confirmar" />;
+  }
+  if (mode === 'ready') {
+    return <AccountConfirm />;
+  }
+  return <DemoConfirm />;
+}
+
+function DemoConfirm() {
   const demo = useDemo();
   const money = (value: string) => maskMoney(value, demo.hideAmounts);
   const [error, setError] = useState('');

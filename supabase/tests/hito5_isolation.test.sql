@@ -247,7 +247,7 @@ select lives_ok(
 
 select lives_ok(
   $$insert into public.categories (id, user_id, name, kind)
-    values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', auth.uid(), 'Transporte', 'gasto')$$,
+    values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', auth.uid(), 'Peaje de prueba', 'gasto')$$,
   'Ana guarda una categoría'
 );
 
@@ -415,7 +415,7 @@ select lives_ok(
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6',
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',
       40000,
-      '2026-12-01'
+      '2026-09-01'
     )$$,
   'Ana registra un desembolso'
 );
@@ -432,7 +432,7 @@ select lives_ok(
       'gasto',
       40000,
       'confirmado',
-      '2026-12-01',
+      '2026-09-01',
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa8'
     )$$,
   'el desembolso produce un gasto confirmado'
@@ -449,7 +449,7 @@ select throws_ok(
       'gasto',
       40000,
       'confirmado',
-      '2026-12-01',
+      '2026-09-01',
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa8'
     )$$,
   '23505',
@@ -591,7 +591,7 @@ select throws_ok(
       'gasto',
       100,
       'confirmado',
-      '2026-10-01'
+      '2026-09-01'
     )$$,
   '23503',
   null,

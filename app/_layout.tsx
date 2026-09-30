@@ -8,6 +8,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { DemoProvider } from '@/components/demo-state';
+import { MovementDraftProvider } from '@/components/movement-draft';
 import { SessionProvider } from '@/components/session-state';
 import { colors } from '@/components/ui/theme';
 
@@ -37,7 +38,8 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <SessionProvider>
-        <DemoProvider>
+        <MovementDraftProvider>
+          <DemoProvider>
           <StatusBar style="dark" />
           <View style={styles.outer}>
             <View style={styles.column}>
@@ -59,7 +61,8 @@ export default function RootLayout() {
               </Stack>
             </View>
           </View>
-        </DemoProvider>
+          </DemoProvider>
+        </MovementDraftProvider>
       </SessionProvider>
     </SafeAreaProvider>
   );

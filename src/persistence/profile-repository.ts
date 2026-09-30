@@ -118,3 +118,17 @@ export async function updateFinancialProfile(input: {
     throw new Error('No se pudo guardar el perfil.')
   }
 }
+
+export async function updateLastAccount(lastAccountId: string): Promise<void> {
+  const { data: userData, error: userError } = await getSupabase().auth.getUser();
+  if (userError || !userData.user) {
+    throw new Error('No hay una sesión activa.');
+  }
+  const { error } = await getSupabase()
+    .from('profiles')
+    .update({ last_account_id: lastAccountId })
+    .eq('id', userData.user.id);
+  if (error) {
+    throw new Error('No se pudo recordar la última cuenta.');
+  }
+}

@@ -1,12 +1,40 @@
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { ConfirmEmailGate, LoadingScreen, useAccountMode } from '@/components/account/mode';
 import { useDemo } from '@/components/demo-state';
 import { homeSnapshots, maskMoney, summaryCategories } from '@/constants/demo';
 import { Amount, Button, Card, Header, Muted, Row, Screen, SectionTitle } from '@/components/ui/primitives';
 import { colors } from '@/components/ui/theme';
 
 export default function SummaryScreen() {
+  const mode = useAccountMode();
+  if (mode === 'loading') {
+    return <LoadingScreen title="Resumen mensual" />;
+  }
+  if (mode === 'confirm') {
+    return <ConfirmEmailGate title="Resumen mensual" />;
+  }
+  if (mode === 'ready') {
+    return <AccountSummary />;
+  }
+  return <DemoSummary />;
+}
+
+function AccountSummary() {
+  return (
+    <Screen>
+      <Header title="Resumen mensual" fallback="/inicio" />
+      <Card tone="soft">
+        <Text style={styles.note}>El resumen de tu cuenta llega después</Text>
+        <Muted>Esta pantalla no muestra cifras de la demostración. El detalle mensual queda para un paso posterior.</Muted>
+      </Card>
+      <Button label="Volver a Inicio" onPress={() => router.replace('/inicio')} />
+    </Screen>
+  );
+}
+
+function DemoSummary() {
   const demo = useDemo();
   const money = (value: string) => maskMoney(value, demo.hideAmounts);
   const snapshot = demo.savedMovement ? homeSnapshots.afterExpense : homeSnapshots.beforeExpense;

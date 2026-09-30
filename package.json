@@ -41,7 +41,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/money.test.ts src/dates.test.ts src/ledger.test.ts src/goals.test.ts src/observed.test.ts src/persistence/database-cents.test.ts src/persistence/demo-boundary.test.ts"
+    "test": "tsx --test src/money.test.ts src/dates.test.ts src/ledger.test.ts src/goals.test.ts src/observed.test.ts src/persistence/database-cents.test.ts src/persistence/demo-boundary.test.ts src/movements/validation.test.ts"
   },
   "private": true
 }

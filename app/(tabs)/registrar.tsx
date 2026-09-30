@@ -1,6 +1,8 @@
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { AccountRegister } from '@/components/account/register';
+import { ConfirmEmailGate, LoadingScreen, useAccountMode } from '@/components/account/mode';
 import { useDemo } from '@/components/demo-state';
 import {
   expenseCategories,
@@ -13,6 +15,20 @@ import { Button, ChoiceRow, Field, Header, Screen } from '@/components/ui/primit
 import { colors } from '@/components/ui/theme';
 
 export default function RegisterScreen() {
+  const mode = useAccountMode();
+  if (mode === 'loading') {
+    return <LoadingScreen title="Registrar movimiento" />;
+  }
+  if (mode === 'confirm') {
+    return <ConfirmEmailGate title="Registrar movimiento" />;
+  }
+  if (mode === 'ready') {
+    return <AccountRegister />;
+  }
+  return <DemoRegister />;
+}
+
+function DemoRegister() {
   const demo = useDemo();
   const categories = demo.draft.kind === 'gasto' ? expenseCategories : incomeCategories;
 

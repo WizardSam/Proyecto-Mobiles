@@ -2,6 +2,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { AccountMovements } from '@/components/account/movements';
+import { ConfirmEmailGate, LoadingScreen, useAccountMode } from '@/components/account/mode';
 import { useDemo } from '@/components/demo-state';
 import { AppIcon } from '@/components/ui/icons';
 import { Amount, Button, Card, ChoiceRow, Muted, Row, Screen } from '@/components/ui/primitives';
@@ -12,6 +14,20 @@ const months = ['Agosto', 'Septiembre', 'Octubre'] as const;
 const filters = ['Todos', 'Ingresos', 'Gastos'] as const;
 
 export default function MovementsScreen() {
+  const mode = useAccountMode();
+  if (mode === 'loading') {
+    return <LoadingScreen title="Movimientos" />;
+  }
+  if (mode === 'confirm') {
+    return <ConfirmEmailGate title="Movimientos" />;
+  }
+  if (mode === 'ready') {
+    return <AccountMovements />;
+  }
+  return <DemoMovements />;
+}
+
+function DemoMovements() {
   const demo = useDemo();
   const params = useLocalSearchParams<{ categoria?: string }>();
   const money = (value: string) => maskMoney(value, demo.hideAmounts);

@@ -156,7 +156,7 @@ site_url = "ahorruta://correo-confirmado"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["ahorruta://correo-confirmado", "ahorruta://restablecer", "http://127.0.0.1:8081/correo-confirmado", "http://127.0.0.1:8081/restablecer", "http://localhost:8081/correo-confirmado", "http://localhost:8081/restablecer"]
+additional_redirect_urls = ["ahorruta://correo-confirmado", "ahorruta://restablecer", "http://127.0.0.1:8081/correo-confirmado", "http://127.0.0.1:8081/restablecer", "http://localhost:8081/correo-confirmado", "http://localhost:8081/restablecer", "http://127.0.0.1:8082/correo-confirmado", "http://127.0.0.1:8082/restablecer", "http://localhost:8082/correo-confirmado", "http://localhost:8082/restablecer"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.

@@ -66,3 +66,17 @@ export async function saveAccount(input: {
     throw new Error('No se pudo guardar la cuenta.');
   }
 }
+
+export async function archiveAccount(id: string): Promise<void> {
+  const { error } = await getSupabase().from('accounts').update({ active: false }).eq('id', id);
+  if (error) {
+    throw new Error('No se pudo archivar la cuenta.');
+  }
+}
+
+export async function reactivateAccount(id: string): Promise<void> {
+  const { error } = await getSupabase().from('accounts').update({ active: true }).eq('id', id);
+  if (error) {
+    throw new Error('No se pudo reactivar la cuenta.');
+  }
+}
