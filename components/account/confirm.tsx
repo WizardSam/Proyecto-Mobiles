@@ -13,11 +13,11 @@ import { createMovement, rememberAccount } from '@/src/persistence/movement-repo
 
 export function AccountConfirm() {
   const { finance, error, loading, reload } = useFinance();
-  const { draft, resetDraft } = useMovementDraft();
+  const { draft, revision, resetDraft } = useMovementDraft();
   const money = useMaskedMoney();
   const [formError, setFormError] = useState('');
   const [pending, setPending] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [savedRevision, setSavedRevision] = useState<number | null>(null);
 
   if (loading && !finance) {
     return (
@@ -52,9 +52,9 @@ export function AccountConfirm() {
     setFormError('');
     setPending(true);
     try {
-      if (!saved) {
+      if (savedRevision !== revision) {
         await createMovement(parsed);
-        setSaved(true);
+        setSavedRevision(revision);
       }
       await rememberAccount(parsed.accountId);
       resetDraft();

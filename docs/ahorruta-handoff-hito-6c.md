@@ -1,10 +1,59 @@
 # Ahorruta — Traspaso del Subhito 6C
 
-Fecha: 28 de septiembre de 2026
+Fecha original: 28 de septiembre de 2026
+Validación manual actualizada: 30 de septiembre de 2026
 
-Los Subhitos 6A y 6B quedan aceptados. El recorrido manual no se hizo. El Hito 6 completo sigue sin aprobación. No hay commit.
+Los Subhitos 6A, 6B y 6C quedan aceptados. El recorrido manual se completó con las salvedades documentadas abajo. El Hito 6 completo queda aprobado por el usuario el 30 de septiembre de 2026.
 
-HEAD sigue en `fa1e238` (`fa1e2386415370c4f5889104427db11031ea6952`), en `master`. El árbol de trabajo del Hito 6 sigue fuera de ese commit.
+El repositorio cambió durante la validación. El cierre parte de `0caa71d` (`0caa71d2885fa654077ff34a18bb8c0fa0c323f8`), rama `main`, alineada entonces con `origin/main`. El Hito 6 entró al historial en `3d145a6` (`Avanza el Hito 6 con movimientos reales y el catálogo de categorías por usuario`). La corrección final de `components/account/confirm.tsx`, esta actualización del traspaso y el estado del README forman el cierre aprobado.
+
+## Resultado del recorrido manual
+
+La validación se hizo en `http://localhost:8082` con `hito6-valida@example.com`, creada y confirmada solo para este recorrido. Su contraseña no está escrita en el repositorio ni en este documento. Los usuarios protegidos `hito5-beto@example.com` y `hito5-sin-confirmar@example.com` no se modificaron.
+
+Pasaron estas comprobaciones:
+
+- La demostración de Cancún permanece separada y marcada como local.
+- La cuenta confirmada conserva nombre, configuración, saldos y última cuenta utilizada.
+- Se sembraron exactamente 5 categorías de ingreso y 10 de gasto.
+- Crear, renombrar, archivar, reactivar y eliminar una categoría sin historial funcionó.
+- Una categoría con historial mostró «Tiene historial, así que no se puede eliminar.» y no presentó el botón Eliminar.
+- Archivar Ahorro lo quitó de Registrar; reactivarlo lo devolvió.
+- Se registraron un gasto y un ingreso reales. Inicio, Movimientos, colores, orden y saldo respondieron a ambos.
+- Cantidad cero y fecha futura se rechazaron con los textos aprobados.
+- Cerrar sesión y volver a entrar conservó movimientos, cuentas, categorías y una corrección de importe.
+- Filtros por tipo, búsqueda, estado sin coincidencias y mes vacío funcionaron.
+- Editar un gasto de 350 a 400 pesos persistió después de volver a entrar.
+- Deshacer antes de 5 segundos restauró el gasto. Dejar vencer el plazo lo borró. El aviso también apareció en Registrar y salir a Inicio confirmó el borrado pendiente.
+- El resumen de la cuenta no mostró cifras de Cancún. Metas y Calendario siguieron marcadas como demostración.
+- No había movimientos con `goal_disbursement_id` ni para Beto ni para la cuenta de validación. La prueba manual de «Pago de meta» quedó no aplicable; no se fabricaron metas ni desembolsos.
+
+No se repitió el acceso del correo sin confirmar porque no estaba disponible su contraseña y el traspaso prohíbe cambiarla. Las pruebas SQL siguen cubriendo ese aislamiento. Tampoco se provocó manualmente el nombre de categoría duplicado. La secuencia exacta de reemplazar un borrado pendiente con un segundo borrado queda cubierta por las pruebas automatizadas.
+
+Al terminar, los dos movimientos de prueba y la categoría temporal ya estaban eliminados. `hito6-valida@example.com` conserva Efectivo en 0, Débito en 5,000 como predeterminada y Ahorro en 0, las tres activas, además del catálogo inicial de 15 categorías.
+
+## Defectos encontrados y corregidos durante 6C
+
+- La barra inferior agrupaba los iconos a la derecha. Ahora distribuye las cuatro pestañas en una fila completa.
+- La configuración local no permitía los retornos de autenticación del puerto 8082. `supabase/config.toml` incluye confirmación y recuperación para `localhost` y `127.0.0.1` en ese puerto.
+- Los campos dentro de tarjetas blancas no se distinguían. Los campos compartidos tienen borde visible.
+- El navegador colocó el correo en el saldo de Ahorro. Los campos financieros y de categorías desactivan ese autocompletado.
+- Mi cuenta escribía Efectivo y Débito antes de descubrir un saldo posterior inválido. Ahora valida todos los saldos antes de escribir cualquiera y da un mensaje que identifica la cuenta.
+- Los intentos fallidos anteriores habían creado cinco copias sin movimientos solo en `hito6-valida@example.com`. Se conservaron las tres cuentas correctas y se eliminaron, con autorización, dos Efectivos y tres Débitos sobrantes. No se tocó otro usuario.
+- Confirmar conservaba el indicador interno de «ya guardado» al iniciar un segundo movimiento y omitía el ingreso. Ahora la protección contra doble guardado queda ligada a la revisión del borrador; gasto e ingreso consecutivos se persisten por separado. Esta corrección está en `components/account/confirm.tsx` y forma parte del cierre aprobado.
+
+## Verificación posterior a las correcciones
+
+| Comprobación | Resultado |
+| --- | --- |
+| `git diff --check` | Código 0 |
+| `npm test` | 73 pruebas, 0 fallos |
+| `npm run lint` | Código 0 |
+| `npm run typecheck` | Código 0 |
+| `npx supabase test db` | 123 pruebas, PASS |
+| `npx expo-doctor` | 20/21; solo pide los parches `expo` 57.0.26, `expo-constants` 57.0.20 y `expo-router` 57.0.24 |
+
+No se actualizaron dependencias durante 6C. Esa actualización debe decidirse aparte. Supabase local volvió a quedar saludable después de reabrir Docker Desktop, y Expo quedó servido en el puerto 8082 con apertura automática del navegador desactivada para esta sesión.
 
 ## Estado aprobado
 
@@ -202,19 +251,19 @@ En los comandos de npm apareció el aviso `Unknown env config "devdir"`. No camb
 
 ## Cierre después de la validación
 
-1. Anota el resultado de cada paso, con el texto visible si algo falla.
-2. Si un paso falla por la interfaz o por su integración con los repositorios, corrige solo ese defecto. Repite el paso y, si el código cambió, vuelve a ejecutar `git diff --check`, `npm test`, `npm run lint`, `npm run typecheck`, `npx expo-doctor` y `npx supabase test db`.
-3. Conserva a `hito5-beto@example.com` y a `hito5-sin-confirmar@example.com`. No cambies sus contraseñas.
-4. No uses `db reset`, no crees un proyecto remoto y no avances a compromisos, metas persistidas ni al Hito 7.
-5. Con el recorrido anotado, deja el Hito 6 sin marcar como aprobado. El commit espera a que se pida.
+1. El Hito 6 queda aprobado con el recorrido y las salvedades de este documento.
+2. Conserva a `hito5-beto@example.com`, `hito5-sin-confirmar@example.com` y `hito6-valida@example.com`. No cambies sus contraseñas.
+3. No uses `db reset` y no crees un proyecto remoto de Supabase sin una decisión nueva.
+4. Las actualizaciones de parche sugeridas por Expo Doctor se aplazaron de forma explícita y no bloquean este cierre.
+5. No avances a compromisos, metas persistidas ni al Hito 7 sin un plan y una aprobación independientes.
 
 ## Mensaje para el siguiente chat
 
 ```text
 Lee docs/ahorruta-handoff-hito-6c.md y el recorrido que describe.
-6A y 6B están aceptados. El Hito 6 completo no está aprobado. HEAD sigue en fa1e238 y no hay commit.
-Haz solo la validación manual en el navegador. No cambies código salvo un defecto que veas en ese recorrido.
-No uses db reset. No borres ni cambies la contraseña de hito5-beto@example.com ni de hito5-sin-confirmar@example.com.
+6A, 6B y 6C están aceptados. El Hito 6 completo está aprobado y su validación manual ya terminó.
+Parte del cierre de Hito 6 y prepara un plan separado antes de cualquier Hito 7.
+No uses db reset. No borres ni cambies la contraseña de hito5-beto@example.com, hito5-sin-confirmar@example.com ni hito6-valida@example.com.
 No crees metas ni desembolsos para fabricar el caso de solo lectura.
-No marques el Hito 6 como aprobado y no hagas commit hasta que se pida.
+Las actualizaciones de parche de Expo quedaron aplazadas; no las mezcles con otro hito sin una decisión nueva.
 ```

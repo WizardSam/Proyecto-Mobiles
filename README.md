@@ -13,7 +13,7 @@ Aplicación administrativa de finanzas personales para registrar ingresos, gasto
 - Hito 3 implementado y aprobado: saldos y presupuestos.
 - Hito 4 implementado y aprobado: motor de metas, reservas y desembolsos.
 - Hito 5 implementado y aprobado en local: cuenta con correo y contraseña, confirmación, recuperación, Mi cuenta, borrado y aislamiento. La demostración de Cancún sigue separada de la cuenta.
-- Hito 6 en desarrollo, no terminado ni aprobado: movimientos reales y catálogo de categorías por usuario. La demostración de Cancún sigue separada. Compromisos, metas y voz siguen en esa demostración.
+- Hito 6 implementado, validado y aprobado: movimientos reales, catálogo de categorías por usuario, edición, filtros, archivo y deshacer. La demostración de Cancún sigue separada. Compromisos, metas persistidas y voz quedan para hitos posteriores.
 - El proyecto remoto de Supabase todavía no existe.
 
 ## Cómo ejecutarlo
