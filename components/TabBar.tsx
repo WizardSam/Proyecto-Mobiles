@@ -49,7 +49,7 @@ const demoScreens = new Set([
   'perfil',
 ]);
 
-export function AhorrutaTabBar({ state, navigation }: TabBarProps) {
+export function AhorrutaTabBar({ state, emitter, navigateToTab }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const { session } = useSession();
   const current = state.routes[state.index]?.name ?? 'inicio';
@@ -73,13 +73,13 @@ export function AhorrutaTabBar({ state, navigation }: TabBarProps) {
                 if (!route) {
                   return;
                 }
-                const event = navigation.emit({
+                const event = emitter.emit({
                   type: 'tabPress',
                   target: route.key,
                   canPreventDefault: true,
                 });
                 if (!selected && !event.defaultPrevented) {
-                  navigation.navigate(tab.name as never);
+                  navigateToTab(route.key);
                 }
               }}
               style={styles.item}
